@@ -1,0 +1,78 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+
+{% if user.is_authenticated %}
+    <table style="width: 100%;">
+        <tbody>
+            <tr>
+                <td style="width:40px;">
+                    <h5>{{ listing.title }}</h5>
+                    <img src="{{ listing.image_url }}" style="width:90%;"/>
+                </td>
+                <td style="width: 60%;">
+                    <div>{{ listing.description }}</div>
+                    <br>
+
+                    <div>Category: {{ category }}</div>
+                    <div>Listed by: {{ listing.owner }}</div>
+                    {% if sold is True %}
+                        <h4>{{ bidding_msg }}</h4>
+                    {% elif sold is False %}
+                        <form action="{% url 'listing' listing.id %}" method="post">
+                            {% csrf_token %}
+                            <div>
+                                Bid: $ <input type="number" min="{{ listing.price }}" step="0.01" name="bid" placeholder="{{ listing.price }}">
+                                <input type="submit" class="btn btn-primary" value="Bid">
+                            </div>
+                        </form>
+
+                        <div class="checkbox" >
+                            <form action="{% url 'listing' listing.id %}" method="post">
+                                {% csrf_token %}
+                                {% if button == 'unwatch' %}
+                                    <input type="submit" class="btn btn-primary" name="unwatch" value="Remove from WatchList">
+                                {% elif button == 'watch' %}
+                                    <input type="submit" class="btn btn-primary" name="watch" value="Add to WatchList">
+                                {% endif %}
+                            </form>
+                        </div>
+
+                        {% if am_owner %}
+                            <form action="{% url 'listing' listing.id %}" method="post">
+                                {% csrf_token %}
+                                <input type="submit" class="btn btn-primary" name="close-bidding" value="Close Bidding"> 
+                            </form>     
+                        {% endif %}
+                    {% endif %}
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <hr>
+
+    <form action="{% url 'listing' listing.id %}" method="post">
+        {% csrf_token %}
+        <h6>Add comment</h6>
+        <textarea class="form-control" aria-label="With textarea" name="comment" style="width:40%; vertical-align: top;"></textarea>
+        <input type="submit" class="btn btn-primary" style="display: inline-block; margin-top: 10px;" value="Comment">
+    </form>
+
+    <br> 
+    <h6>Comments</h6>
+    <ul style="list-style-type: none;">
+        
+        {% for comment in comments %}
+        <div style="border: 1px solid lightgray; margin: 10px; padding: 10px; border-radius: 10px; width: 40%;">
+            <li>{{ comment.comment }} <b>via {{ comment.user }}</b></li>
+            <p>{{ comment.timestamp }}</p>
+        </div>
+        {% endfor %}
+    </ul>
+
+{% else %}
+<h6>Please login or create an account</h6>
+{% endif %}
+
+{% endblock %}
